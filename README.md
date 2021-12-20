@@ -2,7 +2,7 @@
 # go-chaikin
 The Chaikin Oscillator technical analysis algorithm implemented in Golang.
 
-```
+```go
 import "github.com/MicahParks/go-chaikin"
 ```
 
