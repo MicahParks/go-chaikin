@@ -15,12 +15,20 @@ type BigChaikin struct {
 	prevBuy bool
 }
 
+// BigResult holds the results of a BigChaikin calculation.
+type BigResult struct {
+	ADLine      *big.Float
+	BuySignal   *bool
+	ChaikinLine *big.Float
+}
+
 // NewBig creates a new Chaikin Oscillator and returns its first point along with the corresponding Accumulation
 // Distribution Line point.
-func NewBig(initial [LongEMA]ad.BigInput) (cha *BigChaikin, initialResult, adLine *big.Float) {
+func NewBig(initial [LongEMA]ad.BigInput) (*BigChaikin, BigResult) {
 	adLinePoints := make([]*big.Float, len(initial))
-	cha = &BigChaikin{}
+	cha := &BigChaikin{}
 
+	var adLine *big.Float
 	cha.ad, adLine = ad.NewBig(initial[0])
 	adLinePoints[0] = adLine
 
@@ -40,25 +48,34 @@ func NewBig(initial [LongEMA]ad.BigInput) (cha *BigChaikin, initialResult, adLin
 	_, longSMA := ma.NewBigSMA(adLinePoints)
 	cha.long = ma.NewBigEMA(LongEMA, longSMA, nil)
 
-	initialResult = new(big.Float).Sub(latestShortEMA, longSMA)
+	result := BigResult{
+		ADLine:      adLine,
+		BuySignal:   nil,
+		ChaikinLine: new(big.Float).Sub(latestShortEMA, longSMA),
+	}
 
-	cha.prevBuy = initialResult.Cmp(adLine) == 1
+	cha.prevBuy = result.ChaikinLine.Cmp(adLine) == 1
 
-	return cha, initialResult, adLine
+	return cha, result
 }
 
 // Calculate produces the next point on the Chaikin Oscillator given the current period's information.
-func (c *BigChaikin) Calculate(next ad.BigInput) (result, adLine *big.Float, buySignal *bool) {
-	adLine = c.ad.Calculate(next)
-	result = new(big.Float).Sub(c.short.Calculate(adLine), c.long.Calculate(adLine))
+func (c *BigChaikin) Calculate(next ad.BigInput) BigResult {
+	adLine := c.ad.Calculate(next)
+	result := new(big.Float).Sub(c.short.Calculate(adLine), c.long.Calculate(adLine))
 	expected := -1
 	if c.prevBuy {
 		expected = 1
 	}
+	var buySignal *bool
 	if result.Cmp(adLine) != expected {
 		buy := !c.prevBuy
 		c.prevBuy = buy
 		buySignal = &buy
 	}
-	return result, adLine, buySignal
+	return BigResult{
+		ADLine:      adLine,
+		BuySignal:   buySignal,
+		ChaikinLine: result,
+	}
 }

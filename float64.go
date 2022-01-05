@@ -23,12 +23,20 @@ type Chaikin struct {
 	prevBuy bool
 }
 
+// Result holds the results of a Chaikin calculation.
+type Result struct {
+	ADLine      float64
+	BuySignal   *bool
+	ChaikinLine float64
+}
+
 // New creates a new Chaikin Oscillator and returns its first point along with the corresponding Accumulation
 // Distribution Line point.
-func New(initial [LongEMA]ad.Input) (cha *Chaikin, initialResult, adLine float64) {
+func New(initial [LongEMA]ad.Input) (*Chaikin, Result) {
 	adLinePoints := make([]float64, len(initial))
-	cha = &Chaikin{}
+	cha := &Chaikin{}
 
+	var adLine float64
 	cha.ad, adLine = ad.New(initial[0])
 	adLinePoints[0] = adLine
 
@@ -48,21 +56,30 @@ func New(initial [LongEMA]ad.Input) (cha *Chaikin, initialResult, adLine float64
 	_, longSMA := ma.NewSMA(adLinePoints)
 	cha.long = ma.NewEMA(LongEMA, longSMA, 0)
 
-	initialResult = latestShortEMA - longSMA
+	result := Result{
+		ADLine:      adLine,
+		BuySignal:   nil,
+		ChaikinLine: latestShortEMA - longSMA,
+	}
 
-	cha.prevBuy = initialResult > adLine
+	cha.prevBuy = result.ChaikinLine > adLine
 
-	return cha, initialResult, adLine
+	return cha, result
 }
 
 // Calculate produces the next point on the Chaikin Oscillator given the current period's information.
-func (c *Chaikin) Calculate(next ad.Input) (result, adLine float64, buySignal *bool) {
-	adLine = c.ad.Calculate(next)
-	result = c.short.Calculate(adLine) - c.long.Calculate(adLine)
+func (c *Chaikin) Calculate(next ad.Input) Result {
+	adLine := c.ad.Calculate(next)
+	result := c.short.Calculate(adLine) - c.long.Calculate(adLine)
+	var buySignal *bool
 	if result > adLine != c.prevBuy {
 		buy := !c.prevBuy
 		c.prevBuy = buy
 		buySignal = &buy
 	}
-	return result, adLine, buySignal
+	return Result{
+		ADLine:      adLine,
+		BuySignal:   buySignal,
+		ChaikinLine: result,
+	}
 }

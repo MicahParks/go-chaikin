@@ -26,8 +26,8 @@ func main() {
 
 	// Create the Chaikin Oscillator data structure as well as its first data point and the corresponding Accumulation
 	// Distribution Line point.
-	cha, result, adLine := chaikin.New(initial)
-	logger.Printf("%.4f, %.4f", adLine, result)
+	cha, result := chaikin.New(initial)
+	logger.Printf("%.4f, %.4f", result.ADLine, result.ChaikinLine)
 
 	// Use every subsequent period's data to calculate the next points on the Chaikin Oscillator and Accumulation
 	// Distribution Line.
@@ -35,13 +35,13 @@ func main() {
 	for i := range open[chaikin.LongEMA:] {
 		i += chaikin.LongEMA
 
-		result, adLine, buySignal = cha.Calculate(ad.Input{
+		result = cha.Calculate(ad.Input{
 			Close:  closePrices[i],
 			Low:    low[i],
 			High:   high[i],
 			Volume: volume[i],
 		})
-		logger.Printf("%.4f, %.4f", adLine, result)
+		logger.Printf("%.4f, %.4f", result.ADLine, result.ChaikinLine)
 		if buySignal != nil {
 			if *buySignal {
 				logger.Println("Buy.")

@@ -24,7 +24,7 @@ func BenchmarkChaikin_Calculate(b *testing.B) {
 		}
 	}
 
-	cha, _, _ := chaikin.New(initial)
+	cha, _ := chaikin.New(initial)
 
 	for i := range open[chaikin.LongEMA:] {
 		i += chaikin.LongEMA
@@ -49,7 +49,7 @@ func BenchmarkBigChaikin_Calculate(b *testing.B) {
 		}
 	}
 
-	cha, _, _ := chaikin.NewBig(initial)
+	cha, _ := chaikin.NewBig(initial)
 
 	for i := range bigOpen[chaikin.LongEMA:] {
 		i += chaikin.LongEMA
@@ -74,32 +74,31 @@ func TestChaikin_Calculate(t *testing.T) {
 		}
 	}
 
-	cha, result, _ := chaikin.New(initial)
-	if result != chaikinResults[0] {
+	cha, result := chaikin.New(initial)
+	if result.ChaikinLine != chaikinResults[0] {
 		t.FailNow()
 	}
 
-	var buySignal *bool
 	for i := range open[chaikin.LongEMA:] {
 		i += chaikin.LongEMA
 
-		result, _, buySignal = cha.Calculate(ad.Input{
+		result = cha.Calculate(ad.Input{
 			Close:  closePrices[i],
 			Low:    low[i],
 			High:   high[i],
 			Volume: volume[i],
 		})
 
-		if result != chaikinResults[i-chaikin.LongEMA+1] {
+		if result.ChaikinLine != chaikinResults[i-chaikin.LongEMA+1] {
 			t.Errorf(badNumericResult)
 			t.FailNow()
 		}
 
 		expected := buySignals[i-chaikin.LongEMA]
-		if buySignal == nil && expected == nil {
+		if result.BuySignal == nil && expected == nil {
 			continue
 		}
-		if buySignal == nil || expected == nil || *buySignal != *expected {
+		if result.BuySignal == nil || expected == nil || *result.BuySignal != *expected {
 			t.Errorf(badBuySignal)
 			t.FailNow()
 		}
@@ -117,32 +116,31 @@ func TestBigChaikin_Calculate(t *testing.T) {
 		}
 	}
 
-	cha, result, _ := chaikin.NewBig(initial)
-	if result.Cmp(bigChaikinResults[0]) != 0 {
+	cha, result := chaikin.NewBig(initial)
+	if result.ChaikinLine.Cmp(bigChaikinResults[0]) != 0 {
 		t.FailNow()
 	}
 
-	var buySignal *bool
 	for i := range bigOpen[chaikin.LongEMA:] {
 		i += chaikin.LongEMA
 
-		result, _, buySignal = cha.Calculate(ad.BigInput{
+		result = cha.Calculate(ad.BigInput{
 			Close:  bigClose[i],
 			Low:    bigLow[i],
 			High:   bigHigh[i],
 			Volume: bigVolume[i],
 		})
 
-		if result.Cmp(bigChaikinResults[i-chaikin.LongEMA+1]) != 0 {
+		if result.ChaikinLine.Cmp(bigChaikinResults[i-chaikin.LongEMA+1]) != 0 {
 			t.Errorf(badNumericResult)
 			t.FailNow()
 		}
 
 		expected := buySignals[i-chaikin.LongEMA]
-		if buySignal == nil && expected == nil {
+		if result.BuySignal == nil && expected == nil {
 			continue
 		}
-		if buySignal == nil || expected == nil || *buySignal != *expected {
+		if result.BuySignal == nil || expected == nil || *result.BuySignal != *expected {
 			t.Errorf(badBuySignal)
 			t.FailNow()
 		}
