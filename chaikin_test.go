@@ -8,6 +8,11 @@ import (
 	"github.com/MicahParks/go-chaikin"
 )
 
+const (
+	badBuySignal     = "The buy signal was incorrect."
+	badNumericResult = "The numeric result was incorrect."
+)
+
 func BenchmarkChaikin_Calculate(b *testing.B) {
 	initial := [chaikin.LongEMA]ad.Input{}
 	for i := 0; i < chaikin.LongEMA; i++ {
@@ -74,10 +79,11 @@ func TestChaikin_Calculate(t *testing.T) {
 		t.FailNow()
 	}
 
+	var buySignal *bool
 	for i := range open[chaikin.LongEMA:] {
 		i += chaikin.LongEMA
 
-		result, _ = cha.Calculate(ad.Input{
+		result, _, buySignal = cha.Calculate(ad.Input{
 			Close:  closePrices[i],
 			Low:    low[i],
 			High:   high[i],
@@ -85,6 +91,16 @@ func TestChaikin_Calculate(t *testing.T) {
 		})
 
 		if result != chaikinResults[i-chaikin.LongEMA+1] {
+			t.Errorf(badNumericResult)
+			t.FailNow()
+		}
+
+		expected := buySignals[i-chaikin.LongEMA]
+		if buySignal == nil && expected == nil {
+			continue
+		}
+		if buySignal == nil || expected == nil || *buySignal != *expected {
+			t.Errorf(badBuySignal)
 			t.FailNow()
 		}
 	}
@@ -106,10 +122,11 @@ func TestBigChaikin_Calculate(t *testing.T) {
 		t.FailNow()
 	}
 
+	var buySignal *bool
 	for i := range bigOpen[chaikin.LongEMA:] {
 		i += chaikin.LongEMA
 
-		result, _ = cha.Calculate(ad.BigInput{
+		result, _, buySignal = cha.Calculate(ad.BigInput{
 			Close:  bigClose[i],
 			Low:    bigLow[i],
 			High:   bigHigh[i],
@@ -117,6 +134,16 @@ func TestBigChaikin_Calculate(t *testing.T) {
 		})
 
 		if result.Cmp(bigChaikinResults[i-chaikin.LongEMA+1]) != 0 {
+			t.Errorf(badNumericResult)
+			t.FailNow()
+		}
+
+		expected := buySignals[i-chaikin.LongEMA]
+		if buySignal == nil && expected == nil {
+			continue
+		}
+		if buySignal == nil || expected == nil || *buySignal != *expected {
+			t.Errorf(badBuySignal)
 			t.FailNow()
 		}
 	}

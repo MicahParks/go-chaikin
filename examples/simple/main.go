@@ -31,16 +31,24 @@ func main() {
 
 	// Use every subsequent period's data to calculate the next points on the Chaikin Oscillator and Accumulation
 	// Distribution Line.
+	var buySignal *bool
 	for i := range open[chaikin.LongEMA:] {
 		i += chaikin.LongEMA
 
-		result, adLine = cha.Calculate(ad.Input{
+		result, adLine, buySignal = cha.Calculate(ad.Input{
 			Close:  closePrices[i],
 			Low:    low[i],
 			High:   high[i],
 			Volume: volume[i],
 		})
 		logger.Printf("%.4f, %.4f", adLine, result)
+		if buySignal != nil {
+			if *buySignal {
+				logger.Println("Buy.")
+			} else {
+				logger.Println("Sell.")
+			}
+		}
 	}
 }
 
