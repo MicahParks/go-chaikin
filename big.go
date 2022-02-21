@@ -25,6 +25,13 @@ type BigResult struct {
 // NewBig creates a new Chaikin Oscillator and returns its first point along with the corresponding Accumulation
 // Distribution Line point.
 func NewBig(initial [LongEMA]ad.BigInput) (*BigChaikin, BigResult) {
+	return NewBigCustom(initial[:], ShortEMA, nil, nil)
+}
+
+// NewBigCustom creates a new Chaikin Oscillator and returns its first point along with the corresponding Accumulation
+// Distribution Line point. Custom (non-Chaikin approved) inputs are allowed. The length of the initial input slice is
+// the length of the long EMA period.
+func NewBigCustom(initial []ad.BigInput, shortPeriod uint, shortSmoothing, longSmoothing *big.Float) (*BigChaikin, BigResult) {
 	adLinePoints := make([]*big.Float, len(initial))
 	cha := &BigChaikin{}
 
@@ -36,17 +43,17 @@ func NewBig(initial [LongEMA]ad.BigInput) (*BigChaikin, BigResult) {
 		adLinePoints[i+1] = cha.ad.Calculate(input)
 	}
 
-	_, shortSMA := ma.NewBigSMA(adLinePoints[:ShortEMA])
-	cha.short = ma.NewBigEMA(ShortEMA, shortSMA, nil)
+	_, shortSMA := ma.NewBigSMA(adLinePoints[:shortPeriod])
+	cha.short = ma.NewBigEMA(shortPeriod, shortSMA, shortSmoothing)
 
 	// Catch up the short EMA to where the long EMA will be.
 	var latestShortEMA *big.Float
-	for _, adLine = range adLinePoints[ShortEMA:] {
+	for _, adLine = range adLinePoints[shortPeriod:] {
 		latestShortEMA = cha.short.Calculate(adLine)
 	}
 
 	_, longSMA := ma.NewBigSMA(adLinePoints)
-	cha.long = ma.NewBigEMA(LongEMA, longSMA, nil)
+	cha.long = ma.NewBigEMA(uint(len(initial)), longSMA, longSmoothing)
 
 	result := BigResult{
 		ADLine:      adLine,
