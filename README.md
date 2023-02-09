@@ -6,10 +6,10 @@ The Chaikin Oscillator technical analysis algorithm implemented in Golang.
 import "github.com/MicahParks/go-chaikin"
 ```
 
-## Usage
+# Usage
 For full examples, please see the `examples` directory.
 
-### Step 1
+## Step 1
 Gather the initial input. This is 10 periods of inputs for the Accumulation Distribution Line. It is the minimum number
 of periods required to produce one result for the Chaikin Oscillator. The value, `10` is stored in `chaikin.LongEMA`
 constant.
@@ -27,14 +27,14 @@ for i := 0; i < chaikin.LongEMA; i++ {
 }
 ```
 
-### Step 2
+## Step 2
 Create the Chaikin Oscillator data structure from the initial input array. This will also produce the first Chaikin
 Oscillator point as well as its corresponding Accumulation Distribution Line point.
 ```go
 cha, firstResult, adLine := chaikin.New(initial)
 ```
 
-### Step 3
+## Step 3
 Use the subsequent periods to calculate the next points for the Chaikin Oscillator and Accumulation Distribution Line.
 ```go
 result, adLine = cha.Calculate(ad.Input{
@@ -45,7 +45,7 @@ result, adLine = cha.Calculate(ad.Input{
 })
 ```
 
-## Somewhat complete example (without data)
+# Somewhat complete example (without data)
 ```go
 package main
 
@@ -94,7 +94,7 @@ func main() {
 }
 ```
 
-## Testing
+# Testing
 There is 100% test coverage and benchmarks for this project. Here is an example benchmark result:
 ```
 $ go test -bench .
@@ -108,7 +108,15 @@ PASS
 ok      github.com/MicahParks/go-chaikin        0.004s
 ```
 
-## Resources
+# Other Technical Algorithms
+Looking for some other technical analysis algorithms? Here are some other ones I've implemented:
+* Accumulation/Distribution (A/D): [go-ad](https://github.com/MicahParks/go-ad)
+* Chaikin: [go-chaikin](https://github.com/MicahParks/go-chaikin)
+* Moving Average Convergence Divergence (MACD), Exponential Moving Average (EMA), Simple Moving Average (SMA):
+  [go-ma](https://github.com/MicahParks/go-ma)
+* Relative Strength Index (RSI): [go-rsi](https://github.com/MicahParks/go-rsi)
+
+# Resources
 I built and tested this package using these resources:
 * [Investopedia](https://www.investopedia.com/terms/c/chaikinoscillator.asp)
 * [Invest Excel](https://investexcel.net/chaikin-oscillator-spreadsheet-vba/)
